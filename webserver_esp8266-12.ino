@@ -1,9 +1,19 @@
 #include <ESP8266WiFi.h>
 
 
-const char* ssid = "your ssid";
-const char* password = "your password";
+const char* ssid = "mrsmithers";
+const char* password = "Iluvp00chi12";
 int ledPin = 2; // GPIO2
+int redPin = 15;  //GPIO15
+int greenPin = 12;  //GPIO12
+int bluePin = 13;  //GPIO13
+int colour;
+
+int UVvalue;
+int SolarValue;
+char UVString[6];
+char  SolarString[6];
+
 WiFiServer server(80);
 
 void setup() {
@@ -11,6 +21,13 @@ Serial.begin(115200);
 delay(10);
 
 pinMode(ledPin, OUTPUT);
+pinMode(redPin, OUTPUT);
+pinMode(greenPin, OUTPUT);
+pinMode(bluePin, OUTPUT);
+
+pinMode(A0, INPUT); // luminosity
+
+ 
 digitalWrite(ledPin, LOW);
 
 // Connect to WiFi network
@@ -68,13 +85,54 @@ client.flush();
 
 int value = LOW;
 if (req.indexOf("/LED=ON") != -1) {
-digitalWrite(ledPin, HIGH);
+digitalWrite(ledPin, LOW);
 value = HIGH;
 }
 if (req.indexOf("/LED=OFF") != -1) {
-digitalWrite(ledPin, LOW);
+digitalWrite(ledPin, HIGH);
 value = LOW;
 }
+if (req.indexOf("/LED=GREEN") != -1) {
+//digitalWrite(greenPin, HIGH);
+//digitalWrite(bluePin, LOW);
+//digitalWrite(redPin, LOW);
+       analogWrite(bluePin, 0);
+       analogWrite(greenPin, 255);
+       analogWrite(redPin, 0);
+colour = 1; //green
+}
+if (req.indexOf("/LED=RED") != -1) {
+       analogWrite(bluePin, 0);
+       analogWrite(greenPin, 0);
+       analogWrite(redPin, 255);
+colour = 2; //red
+}
+if (req.indexOf("/LED=BLUE") != -1) {
+       analogWrite(bluePin, 255);
+       analogWrite(greenPin, 0);
+       analogWrite(redPin, 0);
+colour = 3; //red
+}
+
+if (req.indexOf("/LED=PURPLE") != -1) {
+       analogWrite(bluePin, 255);
+       analogWrite(greenPin, 0);
+       analogWrite(redPin, 255);
+colour = 4; //purple
+}
+
+
+
+
+
+
+//analogRead(A0)
+if (req.indexOf("/Luminosity") != -1) {
+  SolarValue = 1024 - analogRead(A0);
+  sprintf(SolarString, "%d", SolarValue);
+}
+
+
 
 // Set ledPin according to the request
 //digitalWrite(ledPin, value);
@@ -93,9 +151,32 @@ client.print("On");
 } else {
 client.print("Off");
 }
+
+
+client.println("<br><br>");
+client.print("Colour Led is now: ");
+ if (colour == 1) {
+  client.print("GREEN");
+} else if (colour == 2){
+  client.print("RED");
+} else if (colour == 3){
+  client.print("BLUE");
+} else if (colour == 4){
+  client.print("PURPLE");
+}
+
+client.println("<br><br>");
+client.print("Luminosity is now: ");
+client.println(SolarString);
 client.println("<br><br>");
 client.println("Click <a href=\"/LED=ON\">here</a> turn the LED on pin 2 ON<br>");
 client.println("Click <a href=\"/LED=OFF\">here</a> turn the LED on pin 2 OFF<br>");
+client.println("Click <a href=\"/Luminosity\">here</a> to get luminosity reading<br>");
+client.println("<br>Change the LED colour<br>");
+client.println("Click <a href=\"/LED=RED\">here</a> turn the LED on to RED<br>");
+client.println("Click <a href=\"/LED=GREEN\">here</a> turn the LED on to GREEN<br>");
+client.println("Click <a href=\"/LED=BLUE\">here</a> turn the LED on to BLUE<br>");
+client.println("Click <a href=\"/LED=PURPLE\">here</a> turn the LED on to PURPLE<br>");
 client.println("</html>");
 
 delay(1);
